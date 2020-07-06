@@ -6,11 +6,12 @@
 APlayerCtrl_MainMenu::APlayerCtrl_MainMenu()
 {
 	bShowMouseCursor = true;
-	SetInputMode(FInputModeUIOnly());
 }
 
 void APlayerCtrl_MainMenu::BeginPlay()
 {
 	Super::BeginPlay();
+	SetInputMode(FInputModeUIOnly());
+
 }
 
