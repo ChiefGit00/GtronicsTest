@@ -1,13 +1,20 @@
 
 #include "CharEnemy.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "PIckUp.h"
 
 ACharEnemy::ACharEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	GunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
+	Muzzle = CreateDefaultSubobject<USceneComponent>(TEXT("Muzzle"));
 	//HealthBar = CreateDefaultSubobject <UWidgetComponent>(TEXT("HealthBar"));
 	SenseComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("SenseComponent"));
-	//GunMesh->SetupAttachment(GetMesh(), FName(TEXT("Weapon")));
+	GunMesh->SetupAttachment(GetMesh(), FName(TEXT("Weapon")));
+	Muzzle->SetupAttachment(GunMesh);
+
+	Muzzle->SetRelativeLocation(FVector(0.0f, 58.0f, 11.0f));
+	
 
 }
 
@@ -18,6 +25,9 @@ void ACharEnemy::BeginPlay()
 	MaxHealth = 100.0f;
 	Health = 100.0f;
 	bOnce = true;
+	SetEnemyType();
+
+	SenseComponent->OnSeePawn.AddDynamic(this, &ACharEnemy::Attack);
 
 }
 
@@ -57,5 +67,25 @@ float ACharEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& Dama
 
 void ACharEnemy::OnDeath()
 {
+	GetWorld()->SpawnActor<APIckUp>(PickUp, GetActorLocation(), GetActorRotation())->SetPickUpType(DropType);
 	Destroy();
+}
+
+void ACharEnemy::Attack(APawn* Player)
+{
+	EnemyAngle = UKismetMathLibrary::NormalizedDeltaRotator(
+			UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), Player->GetActorLocation()), GetActorRotation()).Yaw;
+	if (Enemy == EEnemyType::EnemyMove)
+	{
+		FollowPlayer(Player);
+	}
+
+	Fire();
+}
+
+void ACharEnemy::Fire()
+{
+	FActorSpawnParameters Params;
+	Params.Owner = this;
+	GetWorld()->SpawnActor<AGunProjectile>(Bullet, Muzzle->GetComponentLocation(), FRotator(0.0f, Muzzle->GetComponentRotation().Yaw + 90.0f, 0.0f), Params);
 }

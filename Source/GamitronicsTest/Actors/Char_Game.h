@@ -5,6 +5,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Actors/GunProjectile.h"
+#include "PlayerCtrl_Game.h"
 #include "Char_Game.generated.h"
 
 UCLASS()
@@ -26,12 +27,17 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void PossessedBy(AController* NewController) override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		USkeletalMeshComponent* SKGunMesh;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		UCameraComponent* Camera;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		USpringArmComponent* SpringArm;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		float Angle;
 
@@ -53,8 +59,58 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<class AGunProjectile> BulletClass;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		int32 Level;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		int32 TotalHitPoints;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		float CurrentHitPoint;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		float MaxPower;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		float CurrentPower;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		APlayerCtrl_Game* Ctrl;
+
+	UPROPERTY(EditDefaultsOnly)
+		UAnimMontage* DeathAnim;
+
+	UPROPERTY(VisibleAnywhere)
+		float LevelDelta;
+
+	UPROPERTY(VisibleAnywhere)
+		float AttackPoint;
+
 	UFUNCTION()
-	void Fire();
+		void Fire();
+
+	UFUNCTION()
+		void AddHPonHit(int32 HitPoint);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnEnemyHitUpdate();
+
+	UFUNCTION()
+		void TakeHealth(float Amount);
+
+	UFUNCTION()
+		void TakeAmmo(float Amount);
 	
+	UFUNCTION()
+		void TakePower(float Amount);
+
+	UFUNCTION()
+		void TakeDamage(float Amount);
+
+	UPROPERTY()
+		bool bOnce;
+
+	UFUNCTION()
+		void Death();
 
 };

@@ -4,7 +4,17 @@
 #include "GameFramework/Character.h"
 #include "Components/WidgetComponent.h"
 #include "Perception/PawnSensingComponent.h"
+#include "PIckUp.h"
+#include "GunProjectile.h"
 #include "CharEnemy.generated.h"
+
+UENUM()
+enum class EEnemyType : uint8
+{
+	EnemyTurret,
+	EnemyMove,
+	EnemyMoveII
+};
 
 
 UCLASS()
@@ -44,6 +54,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		UAnimMontage* DeathAnim;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<class APIckUp> PickUp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		EEnemyType Enemy;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		EPickUpType DropType;
+
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<class AGunProjectile> Bullet;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		USceneComponent* Muzzle;
+
 	//void OnDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
 
 	UFUNCTION(BlueprintImplementableEvent)
@@ -56,4 +81,15 @@ public:
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void SetEnemyType();
+
+	UFUNCTION()
+		void Attack(APawn* Player);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void FollowPlayer(APawn* Player);
+
+	UFUNCTION()
+		void Fire();
 };

@@ -1,6 +1,7 @@
 
 #include "GunProjectile.h"
 #include "Kismet/GameplayStatics.h"
+#include "Char_Game.h"
 #include "CharEnemy.h"
 
 AGunProjectile::AGunProjectile()
@@ -25,6 +26,7 @@ void AGunProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 	Mesh->OnComponentHit.AddDynamic(this, &AGunProjectile::OnHit);
+	Bounce = 0;
 
 }
 
@@ -39,15 +41,41 @@ void AGunProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPr
 	{
 		if (Cast<ACharEnemy>(OtherActor))
 		{
-			UGameplayStatics::ApplyDamage(OtherActor, 20,GetInstigatorController(), this, UDamageType::StaticClass());
+			
+			
+
+			if (Cast<AChar_Game>(GetOwner()))
+			{
+				UGameplayStatics::ApplyDamage(OtherActor, Cast<AChar_Game>(GetOwner())->AttackPoint, GetInstigatorController(), this, UDamageType::StaticClass());
+				Cast<AChar_Game>(GetOwner())->AddHPonHit(1);
+			}
+			else
+				UGameplayStatics::ApplyDamage(OtherActor, 20, GetInstigatorController(), this, UDamageType::StaticClass());
+
+			Destroy();
+		}
+		else if (Cast<AGunProjectile>(OtherActor))
+		{
+			Destroy();
+		}
+		else if (Cast<AChar_Game>(OtherActor))
+		{
+			Cast<AChar_Game>(OtherActor)->TakeDamage(10);
 			Destroy();
 		}
 		else
 		{
+			Bounce++;
+			if (Bounce > 1)
+				Destroy();
 			
 		}
-		//if(Cast<EnemyActor)
 	}
-	
+	else if (OtherActor == GetOwner())
+	{
+		Destroy();
+	}
 }
+
+
 
