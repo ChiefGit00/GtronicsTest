@@ -26,4 +26,10 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void UpdatePower(float Power);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void DisplayHelpText(bool Help);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void HideHelpText();
 };

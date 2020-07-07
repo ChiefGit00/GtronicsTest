@@ -53,6 +53,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float Ammo;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		int32 LevelThreshold;
+
 	UPROPERTY(VisibleAnywhere)
 		USceneComponent* Muzzle;
 
@@ -79,12 +82,20 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 		UAnimMontage* DeathAnim;
-
+	
 	UPROPERTY(VisibleAnywhere)
 		float LevelDelta;
 
 	UPROPERTY(VisibleAnywhere)
 		float AttackPoint;
+
+	UPROPERTY(VisibleAnywhere)
+		int32 Kills;
+
+	UPROPERTY()
+		FTimerHandle BulletTimer;
+	UPROPERTY()
+		bool bBulletTime;
 
 	UFUNCTION()
 		void Fire();
@@ -106,6 +117,14 @@ public:
 
 	UFUNCTION()
 		void TakeDamage(float Amount);
+
+	UFUNCTION()
+		void AddKillPoint();
+
+	UFUNCTION()
+		void BulletTimeOn();
+	UFUNCTION()
+		void BulletTimeOff();
 
 	UPROPERTY()
 		bool bOnce;

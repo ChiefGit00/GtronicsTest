@@ -25,6 +25,6 @@ public:
 		UW_GameOver* GameOverUI;
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void GameOver();
+		void GameOver(int32 Kills);
 	
 };

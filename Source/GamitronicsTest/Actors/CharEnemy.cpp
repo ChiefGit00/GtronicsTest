@@ -1,6 +1,8 @@
 
 #include "CharEnemy.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "Char_Game.h"
 #include "PIckUp.h"
 
 ACharEnemy::ACharEnemy()
@@ -57,6 +59,7 @@ float ACharEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& Dama
 		
 		if(bOnce)
 		{
+			Cast<AChar_Game>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))->AddKillPoint();
 			bOnce = false;
 			GetMesh()->PlayAnimation(DeathAnim, false);
 			GetWorldTimerManager().SetTimer(FTimer, this, &ACharEnemy::OnDeath, 1.8f, false);

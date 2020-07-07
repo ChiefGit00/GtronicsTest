@@ -14,5 +14,9 @@ class GAMITRONICSTEST_API UW_GameOver : public UUserWidget
 
 	UFUNCTION(BlueprintCallable)
 		void MainMenu();
+
+	public:
+	UFUNCTION(BlueprintImplementableEvent)
+		void KillPoints(int32 Kills);
 	
 };

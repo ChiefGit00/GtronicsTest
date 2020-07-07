@@ -3,6 +3,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerCtrl_Game.h"
+#include "GameFramework/WorldSettings.h"
 #include "Kismet/KismetMathLibrary.h"
 
 AChar_Game::AChar_Game()
@@ -16,7 +17,7 @@ AChar_Game::AChar_Game()
 	SKGunMesh->SetupAttachment(GetMesh(), FName(TEXT("Weapon")));
 	SpringArm->SetupAttachment(RootComponent);
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-	SpringArm->TargetArmLength = 800.0f;
+	SpringArm->TargetArmLength = 900.0f;
 	Muzzle->SetupAttachment(SKGunMesh);
 	Muzzle->SetRelativeLocation(FVector(0.0f, 58.0f, 11.0f));
 
@@ -27,16 +28,22 @@ AChar_Game::AChar_Game()
 	SpringArm->bInheritRoll = false;
 	bUseControllerRotationYaw = false;
 	bOnce = true;
-	AttackPoint = 20.0f;
+	bBulletTime = true;
+	AttackPoint = 5.0f;
+	LevelThreshold = 10;
+	MaxAmmo = 20;
+	Ammo = 0;
+	MaxHealth = 100;
+	Health = 75;
+	CurrentHitPoint = TotalHitPoints = 0;
+	MaxPower = 100;
+	CurrentPower = 0;
 }
 
 void AChar_Game::BeginPlay()
 {
 	Super::BeginPlay();
-	MaxAmmo = Ammo = 20;
-	MaxHealth = Health = 100;
-	CurrentHitPoint = TotalHitPoints = 0;
-	CurrentPower = MaxPower = 100;
+
 	
 }
 
@@ -49,7 +56,6 @@ void AChar_Game::Tick(float DeltaTime)
 	{
 		Angle = UKismetMathLibrary::NormalizedDeltaRotator(
 				UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), HitResult.ImpactPoint), GetActorRotation()).Yaw;
-		
 	}
 	
 }
@@ -60,6 +66,8 @@ void AChar_Game::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAxis("MoveForward", this, &AChar_Game::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AChar_Game::MoveRight);
 	PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &AChar_Game::Fire);
+	PlayerInputComponent->BindAction("BulletTime", IE_Pressed, this, &AChar_Game::BulletTimeOn);
+	//PlayerInputComponent->BindAction("BulletTime", IE_Released, this, &AChar_Game::StopBulletTimer);
 }
 
 void AChar_Game::PossessedBy(AController* NewController)
@@ -103,16 +111,16 @@ void AChar_Game::Fire()
 void AChar_Game::AddHPonHit(int32 HitPoint)
 {
 	TotalHitPoints += HitPoint;
-	Level = TotalHitPoints / 4;
-	CurrentHitPoint = TotalHitPoints % 4;
+	Level = TotalHitPoints / LevelThreshold;
+	CurrentHitPoint = TotalHitPoints % LevelThreshold;
 	if (CurrentHitPoint == 0)
-		CurrentHitPoint = 4;
+		CurrentHitPoint = LevelThreshold;
 	
 	Ctrl->HUD->UpdateLevel(Level);
-	Ctrl->HUD->UpdateHitPoints(CurrentHitPoint/4);
+	Ctrl->HUD->UpdateHitPoints(CurrentHitPoint/ LevelThreshold);
 
 	if (Level > 0)
-		AttackPoint += (Level * 5);
+		AttackPoint += (Level * 2);
 
 	OnEnemyHitUpdate();
 	
@@ -155,7 +163,7 @@ void AChar_Game::TakeDamage(float Amount)
 			bOnce = false;
 			GetMesh()->PlayAnimation(DeathAnim, false);
 			GetCharacterMovement()->DisableMovement();
-			Ctrl->GameOver();
+			Ctrl->GameOver(Kills);
 			GetWorldTimerManager().SetTimer(tTimer, this, &AChar_Game::Death, 1.8f, false);
 		}
 	
@@ -168,4 +176,47 @@ void AChar_Game::Death()
 {
 	GetMesh()->SetVisibility(false);
 	SKGunMesh->SetVisibility(false);
+}
+
+void AChar_Game::BulletTimeOn()
+{
+	if (bBulletTime)
+	{
+		if (CurrentPower > 0)
+		{
+			UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.4f);
+			GetWorldTimerManager().SetTimer(BulletTimer, this, &AChar_Game::BulletTimeOff, 0.1f, true);
+		}
+		bBulletTime = false;
+	}	
+	else
+	{
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
+		GetWorldTimerManager().PauseTimer(BulletTimer);
+		bBulletTime = true;
+	}
+
+}
+
+void AChar_Game::BulletTimeOff()
+{
+	CurrentPower -= 2;
+	if (CurrentPower < 0)
+	{
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
+		GetWorldTimerManager().PauseTimer(BulletTimer);
+		CurrentPower = 0;
+	}
+	Ctrl->HUD->UpdatePower(CurrentPower / MaxPower);
+}
+
+void AChar_Game::AddKillPoint()
+{
+	Kills += 1;
+	if (Kills > 7)
+	{
+
+		Ctrl->GameOver(Kills);
+	}
+		
 }

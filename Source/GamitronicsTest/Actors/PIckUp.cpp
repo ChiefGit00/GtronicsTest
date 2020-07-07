@@ -29,8 +29,9 @@ void APIckUp::OnPickUp(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimit
 
 		switch (PickUpType)
 		{
-			case EPickUpType::Health: Char->TakeHealth(50);
-			case EPickUpType::Ammo: Char->TakeAmmo(20);
+		case EPickUpType::Health: Char->TakeHealth(50); break;
+		case EPickUpType::Ammo: Char->TakeAmmo(20); break;
+		case EPickUpType::BulletTime: Char->TakePower(50); break;
 		}
 
 		Destroy();
